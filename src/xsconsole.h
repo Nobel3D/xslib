@@ -4,11 +4,10 @@
 #include <QTextStream>
 #include "xslib_global.h"
 
-class xsConsole : public QObject
+class xsConsole
 {
-    Q_OBJECT
 public:
-    explicit xsConsole(QObject *parent = 0);
+    explicit xsConsole();
 
     void Write(QString text);
     void Read(QString& text);

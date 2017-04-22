@@ -1,5 +1,6 @@
 #include "xsdatabase.h"
 
+#include <QSqlDriver>
 #include <QSqlError>
 #include <QSqlRecord>
 #include <QVariant>
@@ -38,7 +39,7 @@ bool xsDatabase::createTable(const QString& table, const QString& fields)
     if (table.isEmpty() && fields.isEmpty())
         return false;
 
-    if (!query->exec("CREATE TABLE "+ table + "(" + fields + ");"))
+    if (!query->exec("CREATE TABLE "+ table + "( id INTEGER PRIMARY KEY," + fields + ");"))
     {
         status = -2;
         return false;
@@ -49,28 +50,26 @@ bool xsDatabase::useTable(const QString &table)
 {
     if(table.isEmpty())
         return false;
-    usingTable = table;
+    usingTable = table; //TODO: Add if table exists
     return true;
 }
-bool xsDatabase::addValue(const QString& fields, const QString& values)
+bool xsDatabase::addValue(const QStringList& values)
 {
-    if (fields.isEmpty() && values.isEmpty())
+    if (values.isEmpty())
         return false;
 
-    QStringList valuelist = values.split(",");
+    QStringList fields = getFieldsList();
     QString formatvalue = "";
 
-    for(int i = 0; i < valuelist.size(); i++)
+    for(int i = 0; i < values.size(); i++)
         formatvalue += "?,";
+    for(int i = 0; i < values.size(); i++)
+    {
+         query->bindValue(i, values.value(i).trimmed());
+    }
 
     //Erase last character ','
-    query->prepare("INSERT INTO " + usingTable + " (" + fields + ") VALUES (" +
-                   formatvalue.left(formatvalue.length() - 1) + ")");
-
-    for(int i = 0; i < valuelist.size(); i++)
-    {
-         query->bindValue(i, valuelist.value(i).trimmed());
-    }
+    query->prepare("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
 
     if(!query->exec())
         return false;
@@ -110,6 +109,19 @@ QStringList xsDatabase::printColumn(int field)
     return offset;
 }
 
+QString xsDatabase::findValue(int field, int id)
+{
+    if (field < 0 && id < 0)
+        return "";
+
+    query->exec("SELECT * FROM " + usingTable);
+    for (int i = 0; query->next(); i++)
+        if(i == id)
+            return query->value(field).toString();
+
+    return "";
+}
+
 QString xsDatabase::findValue(const QString& field, int id)
 {
     if (field.isEmpty() && id < 0)
@@ -147,6 +159,41 @@ bool xsDatabase::clearTable()
         return false;
 
     return true;
+}
+
+QString xsDatabase::format(const QStringList &list, bool text)
+{
+    int x = list.size();
+    QString offset = "";
+
+    for(int i = 0; i < x; i++)
+        if(text)
+            offset.append(list.value(i) + ",");      //FIELDS != FIELD
+        else
+            offset.append("\"" + list.value(i) + "\",");
+    return offset.left(offset.length() - 1); //Erase last character ','
+}
+
+int xsDatabase::getFieldCount()
+{
+    const QSqlDriver* driver = query->driver();
+    return driver->record(usingTable).count();
+}
+QStringList xsDatabase::getFieldsList()
+{
+    QStringList offset;
+
+    const QSqlDriver* driver = query->driver();
+    for(int i = 1; i < getFieldCount(); i++)
+        offset.append(driver->record(usingTable).fieldName(i));
+
+    return offset;
+}
+
+QString xsDatabase::getFieldName(int x)
+{
+    const QSqlDriver* driver = query->driver();
+    return driver->record(usingTable).fieldName(x);
 }
 
 QString xsDatabase::getTable()

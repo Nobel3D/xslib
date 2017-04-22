@@ -5,7 +5,7 @@
     #include <sys/ioctl.h>
 #endif
 
-xsConsole::xsConsole(QObject *parent) : QObject(parent)
+xsConsole::xsConsole()
 {
     out = new QTextStream(stdout, QIODevice::WriteOnly);
     in = new QTextStream(stdin);
