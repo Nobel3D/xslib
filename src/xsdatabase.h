@@ -20,6 +20,7 @@ public:
     bool useTable(const QString &table);
 
     bool addValue(const QStringList &values);
+    bool updateValue(const QString &field, const QString &value, int id);
     bool removeValue(const QString& field, const QString& value);
 
     bool existValue(const QString& field, const QString &value);

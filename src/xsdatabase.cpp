@@ -36,7 +36,7 @@ int xsDatabase::getStatus() const
 
 bool xsDatabase::createTable(const QString& table, const QString& fields)
 {
-    if (table.isEmpty() && fields.isEmpty())
+    if (table.isEmpty() || fields.isEmpty())
         return false;
 
     if (!query->exec("CREATE TABLE "+ table + "( id INTEGER PRIMARY KEY," + fields + ");"))
@@ -77,9 +77,22 @@ bool xsDatabase::addValue(const QStringList& values)
         return true;
 }
 
+bool xsDatabase::updateValue(const QString &field, const QString &value, int id)
+{
+    if(field.isEmpty() || value.isEmpty() || id < 0)
+        return false;
+
+    query->prepare("UPDATE " + usingTable + " SET " + field + " = '" + value + "' WHERE ID = " + QString::number(id) );
+
+    if(!query->exec())
+        return false;
+    else
+        return true;
+}
+
 bool xsDatabase::removeValue(const QString& field, const QString& value)
 {
-    if (field.isEmpty() && value.isEmpty())
+    if (field.isEmpty() || value.isEmpty())
         return false;
 
     if (existValue(field, value))
@@ -111,7 +124,7 @@ QStringList xsDatabase::printColumn(int field)
 
 QString xsDatabase::findValue(int field, int id)
 {
-    if (field < 0 && id < 0)
+    if (field < 0 || id < 0)
         return "";
 
     query->exec("SELECT * FROM " + usingTable);
@@ -124,7 +137,7 @@ QString xsDatabase::findValue(int field, int id)
 
 QString xsDatabase::findValue(const QString& field, int id)
 {
-    if (field.isEmpty() && id < 0)
+    if (field.isEmpty() || id < 0)
         return "";
 
     query->exec("SELECT * FROM " + usingTable);
@@ -137,7 +150,7 @@ QString xsDatabase::findValue(const QString& field, int id)
 
 int xsDatabase::findValue(const QString& field, const QString& value)
 {
-    if (field.isEmpty() && value.isEmpty())
+    if (field.isEmpty() || value.isEmpty())
         return FAIL;
 
     query->exec("SELECT * FROM " + usingTable);
