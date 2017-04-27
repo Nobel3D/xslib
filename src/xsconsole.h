@@ -13,6 +13,7 @@ public:
     void Read(QString& text);
     void setXY(int x, int y);
     void getXY(int& x, int& y);
+    static QString ReadPasswd();
     xsConsole& operator <<(QString text);
     xsConsole& operator >>(QString& text);
 

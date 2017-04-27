@@ -1,8 +1,39 @@
 #include "xsconsole.h"
 #include <unistd.h>
+#include <stdio.h>
 #ifdef linux
     #include <term.h>
     #include <sys/ioctl.h>
+#endif
+
+#ifdef WIN32
+    #include<conio.h>
+    #define ENTER_KEY 13
+#endif
+#ifdef linux
+    #include <termios.h>
+    #define ENTER_KEY 10
+    QString xsConsole::ReadPasswd()
+    {
+        QString offset;
+        termios oldattr, newattr;
+        int ch;
+        tcgetattr( STDIN_FILENO, &oldattr );
+        newattr = oldattr;
+        newattr.c_lflag &= ~( ICANON | ECHO );
+        tcsetattr( STDIN_FILENO, TCSANOW, &newattr );
+        while(true)
+        {
+        ch = getchar();
+        if(ch == ENTER_KEY)
+            break;
+        putchar('*');
+        offset.append(ch);
+        }
+        putchar('\n');
+        tcsetattr( STDIN_FILENO, TCSANOW, &oldattr );
+        return offset;
+    }
 #endif
 
 xsConsole::xsConsole()
