@@ -4,6 +4,8 @@
 #include <QTextStream>
 #include "xslib_global.h"
 
+#define endl "\n"
+
 class xsConsole
 {
 public:

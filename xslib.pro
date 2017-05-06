@@ -31,7 +31,8 @@ SOURCES +=\
     src/xsblowfish.cpp \
     src/xsdatabase.cpp \
     src/xsserverssl.cpp \
-    src/xsclientssl.cpp
+    src/xsclientssl.cpp \
+    src/xspassword.cpp
 
 HEADERS +=\
     src/xslib_global.h \
@@ -43,7 +44,8 @@ HEADERS +=\
     src/hexpi.h \
     src/xsdatabase.h \
     src/xsserverssl.h \
-    src/xsclientssl.h
+    src/xsclientssl.h \
+    src/xspassword.h
 
 unix {
     target.path = /usr/lib

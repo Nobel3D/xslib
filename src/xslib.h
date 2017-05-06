@@ -7,6 +7,7 @@
 #include "xsarg.h"
 #include "xsblowfish.h"
 #include "xsdatabase.h"
+#include "xspassword.h"
 #include "xsserverssl.h"
 #include "xsclientssl.h"
 

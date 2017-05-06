@@ -25,6 +25,7 @@ public:
     const QSslCertificate &getLocalCertificate() const;
     const QSslKey &getPrivateKey() const;
     QSsl::SslProtocol getProtocol() const;
+    QString getStatus() const;
 
 
     void setLocalCertificate(const QSslCertificate &certificate);

@@ -36,8 +36,9 @@ QByteArray xsServerSsl::Read(int delay)
 {
     if (socket->waitForReadyRead(delay))    // Wait until some data is received
         return socket->readAll();    // Read message
-    else
-        strStatus = "Could not receive message (" + socket->errorString() + ")";
+
+    strStatus = "Could not receive message (" + socket->errorString() + ")";
+    return QByteArray();
 }
 int xsServerSsl::Write(QByteArray msg, int delay)
 {
@@ -82,7 +83,10 @@ QSsl::SslProtocol xsServerSsl::getProtocol() const
     return m_sslProtocol;
 }
 
-
+QString xsServerSsl::getStatus() const
+{
+    return strStatus;
+}
 
 void xsServerSsl::setLocalCertificate(const QSslCertificate &certificate)
 {
