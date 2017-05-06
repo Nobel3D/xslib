@@ -7,6 +7,12 @@
 
 #define OK 1
 #define FAIL -1
+#ifdef WIN32
+    #define GETUSER getenv("USERNAME")
+#endif
+#ifdef linux
+    #define GETUSER getenv("USER")
+#endif
 
 #if defined(XSLIB_LIBRARY)
 #  define XSLIBSHARED_EXPORT Q_DECL_EXPORT

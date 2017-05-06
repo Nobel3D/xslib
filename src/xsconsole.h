@@ -14,6 +14,7 @@ public:
     void setXY(int x, int y);
     void getXY(int& x, int& y);
     static QString ReadPasswd();
+    static QString Shell(QString var1, QString var2);
     xsConsole& operator <<(QString text);
     xsConsole& operator >>(QString& text);
 

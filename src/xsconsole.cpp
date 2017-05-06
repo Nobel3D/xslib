@@ -36,6 +36,14 @@
     }
 #endif
 
+QString xsConsole::Shell(QString var1, QString var2) //TODO: ADD LAST INPUT
+{
+    QString offset;
+    xsConsole() << "[" << var1 << ":" << var2 << "]$ ";
+    xsConsole() >> offset;
+    return offset;
+}
+
 xsConsole::xsConsole()
 {
     out = new QTextStream(stdout, QIODevice::WriteOnly);

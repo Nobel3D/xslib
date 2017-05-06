@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core
+QT       += network
 QT       += sql
 
 TARGET = xs
@@ -28,7 +29,9 @@ SOURCES +=\
     src/xslog.cpp \
     src/xsarg.cpp \
     src/xsblowfish.cpp \
-    src/xsdatabase.cpp
+    src/xsdatabase.cpp \
+    src/xsserverssl.cpp \
+    src/xsclientssl.cpp
 
 HEADERS +=\
     src/xslib_global.h \
@@ -38,7 +41,9 @@ HEADERS +=\
     src/xsarg.h \
     src/xsblowfish.h \
     src/hexpi.h \
-    src/xsdatabase.h
+    src/xsdatabase.h \
+    src/xsserverssl.h \
+    src/xsclientssl.h
 
 unix {
     target.path = /usr/lib
