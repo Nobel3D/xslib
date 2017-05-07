@@ -13,7 +13,7 @@
 #ifdef linux
     #include <termios.h>
     #define ENTER_KEY 10
-    QString xsConsole::ReadPasswd()
+    xsPassword xsConsole::ReadPasswd(bool copyClear, QCryptographicHash::Algorithm type, int maxhit)
     {
         QString offset;
         termios oldattr, newattr;
@@ -32,7 +32,7 @@
         }
         putchar('\n');
         tcsetattr( STDIN_FILENO, TCSANOW, &oldattr );
-        return offset;
+        return xsPassword(offset, copyClear, type, maxhit);
     }
 #endif
 
