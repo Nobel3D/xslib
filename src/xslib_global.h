@@ -4,6 +4,7 @@
 #include <QtCore/qglobal.h>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 #define OK 1
 #define FAIL -1
