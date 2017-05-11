@@ -10,5 +10,6 @@
 #include "xspassword.h"
 #include "xsserverssl.h"
 #include "xsclientssl.h"
+#include "xsobject.h"
 
 #endif // XSLIB_H

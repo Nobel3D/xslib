@@ -3,7 +3,7 @@
 
 #include "xslib_global.h"
 
-class xsArg : public QObject
+class XSLIBSHARED_EXPORT xsArg : public QObject
 {
     Q_OBJECT
 public:

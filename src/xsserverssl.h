@@ -9,7 +9,7 @@
 #include <QSslCertificate>
 #include <QSslKey>
 
-class xsServerSsl : public QTcpServer
+class XSLIBSHARED_EXPORT xsServerSsl : public QTcpServer
 {
     Q_OBJECT
 

@@ -7,7 +7,7 @@
 
 #define endl "\n"
 
-class xsConsole
+class XSLIBSHARED_EXPORT xsConsole
 {
 public:
     explicit xsConsole();

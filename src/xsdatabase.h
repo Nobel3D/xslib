@@ -5,7 +5,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-class xsDatabase //TODO: ADD VALUES AND FIELDS CLASS!
+class XSLIBSHARED_EXPORT xsDatabase //TODO: ADD VALUES AND FIELDS CLASS!
 {
 public:
     xsDatabase(const QString& file);
@@ -18,6 +18,7 @@ public:
 
     bool createTable(const QString &table, const QString &fields);
     bool useTable(const QString &table);
+    bool existTable(const QString &table);
 
     bool addValue(const QStringList &values);
     bool updateValue(const QString &field, const QString &value, int id);
@@ -35,6 +36,7 @@ public:
     QString format(const QStringList &list, bool text = false);
 
     int getFieldCount();
+    QStringList getTables();
     QStringList getFieldsList();
     QString getFieldName(int x);
     QString getTable();

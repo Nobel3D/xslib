@@ -48,11 +48,17 @@ bool xsDatabase::createTable(const QString& table, const QString& fields)
 }
 bool xsDatabase::useTable(const QString &table)
 {
-    if(table.isEmpty())
+    if(table.isEmpty() || !existTable(table))
         return false;
     usingTable = table; //TODO: Add if table exists
     return true;
 }
+
+bool xsDatabase::existTable(const QString &table)
+{
+    return db.tables().contains(table);
+}
+
 bool xsDatabase::addValue(const QStringList& values)
 {
     if (values.isEmpty())
@@ -192,6 +198,12 @@ int xsDatabase::getFieldCount()
     const QSqlDriver* driver = query->driver();
     return driver->record(usingTable).count();
 }
+
+QStringList xsDatabase::getTables()
+{
+    return db.tables();
+}
+
 QStringList xsDatabase::getFieldsList()
 {
     QStringList offset;

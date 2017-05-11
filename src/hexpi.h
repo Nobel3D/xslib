@@ -2,8 +2,9 @@
 #define HEXPI_H
 
 #include <QtGlobal>
+#include "xslib_global.h"
 
-class HexPi {
+class XSLIBSHARED_EXPORT HexPi {
     public:
         quint32 Pi[1042];
 

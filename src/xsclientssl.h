@@ -4,7 +4,7 @@
 #include <QSslSocket>
 #include "xslib_global.h"
 
-class xsClientSsl
+class XSLIBSHARED_EXPORT xsClientSsl
 {
 public:
     xsClientSsl(const QString &crt);

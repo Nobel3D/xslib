@@ -5,7 +5,7 @@
 #include <QCryptographicHash>
 #include <QFile>
 
-class xsPassword
+class XSLIBSHARED_EXPORT xsPassword
 {
 public:
     xsPassword();

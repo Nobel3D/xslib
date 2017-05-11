@@ -7,7 +7,7 @@
 #include <QStringList>
 
 #define OK 1
-#define FAIL -1
+#define FAIL 0
 #ifdef WIN32
     #define GETUSER getenv("USERNAME")
 #endif

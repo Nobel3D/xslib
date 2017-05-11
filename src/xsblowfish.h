@@ -6,7 +6,7 @@
 #include "xslib_global.h"
 #include "hexpi.h"
 
-class xsBlowfish : public QObject
+class XSLIBSHARED_EXPORT xsBlowfish : public QObject
 {
     Q_OBJECT
 public:
