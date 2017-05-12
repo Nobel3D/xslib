@@ -39,12 +39,7 @@ bool xsDatabase::createTable(const QString& table, const QString& fields)
     if (table.isEmpty() || fields.isEmpty())
         return false;
 
-    if (!query->exec("CREATE TABLE "+ table + "( id INTEGER PRIMARY KEY," + fields + ");"))
-    {
-        status = -2;
-        return false;
-    }
-    return true;
+    return query->exec("CREATE TABLE "+ table + "( id INTEGER PRIMARY KEY," + fields + ");");
 }
 bool xsDatabase::useTable(const QString &table)
 {
@@ -65,22 +60,8 @@ bool xsDatabase::addValue(const QStringList& values)
         return false;
 
     QStringList fields = getFieldsList();
-    QString formatvalue = "";
 
-    for(int i = 0; i < values.size(); i++)
-        formatvalue += "?,";
-    for(int i = 0; i < values.size(); i++)
-    {
-         query->bindValue(i, values.value(i).trimmed());
-    }
-
-    //Erase last character ','
-    query->prepare("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
-
-    if(!query->exec())
-        return false;
-    else
-        return true;
+    return query->exec("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
 }
 
 bool xsDatabase::updateValue(const QString &field, const QString &value, int id)
@@ -88,12 +69,7 @@ bool xsDatabase::updateValue(const QString &field, const QString &value, int id)
     if(field.isEmpty() || value.isEmpty() || id < 0)
         return false;
 
-    query->prepare("UPDATE " + usingTable + " SET " + field + " = '" + value + "' WHERE ID = " + QString::number(id) );
-
-    if(!query->exec())
-        return false;
-    else
-        return true;
+    return query->exec("UPDATE " + usingTable + " SET " + field + " = '" + value + "' WHERE ID = " + QString::number(id));
 }
 
 bool xsDatabase::removeValue(const QString& field, const QString& value)
@@ -105,6 +81,17 @@ bool xsDatabase::removeValue(const QString& field, const QString& value)
         return false;
 
     return query->exec("DELETE FROM " + usingTable + " WHERE " + field + " = (" + value + ")");
+}
+
+bool xsDatabase::updateValue(const QString &field, const QString &oldvalue, const QString &newvalue)
+{
+    if (field.isEmpty() || oldvalue.isEmpty() || newvalue.isEmpty())
+        return false;
+
+    if (!existValue(field, oldvalue))
+        return false;
+
+    return query->exec("UPDATE " + usingTable + " SET " + field + " = '" + newvalue + "' WHERE " + field + " = '" + oldvalue + "'");
 }
 
 QStringList xsDatabase::printColumn(const QString& field)
@@ -164,7 +151,7 @@ int xsDatabase::findValue(const QString& field, const QString& value)
         if(query->value(field).toString() == value)
             return i;
 
-    return FAIL;
+    return -1;
 }
 
 bool xsDatabase::existValue(const QString& field, const QString& value)

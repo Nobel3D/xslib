@@ -23,6 +23,7 @@ public:
     bool addValue(const QStringList &values);
     bool updateValue(const QString &field, const QString &value, int id);
     bool removeValue(const QString& field, const QString& value);
+    bool updateValue(const QString &field, const QString &oldvalue, const QString &newvalue);
 
     bool existValue(const QString& field, const QString &value);
     QStringList printColumn(const QString& field);
