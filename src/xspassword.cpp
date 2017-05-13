@@ -1,4 +1,5 @@
 #include "xspassword.h"
+#include <time.h>
 
 xsPassword::xsPassword()
 {
@@ -146,4 +147,26 @@ QString xsPassword::HashKey(const QString &key, QCryptographicHash::Algorithm ty
     QCryptographicHash hasher(type);
     hasher.addData(key.toUtf8());
     return hasher.result();
+}
+
+QString xsPassword::pwGenerate(int length)
+{
+    char offset[length + 1];
+    char alphabet[] = {
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n',
+        'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N',
+        'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+
+        '2', '3', '4', '6', '7', '8', '9'
+    };
+
+    srand(time(0));
+    for (int i = 0; i < length; i++)
+        offset[i] = alphabet[rand() % sizeof(alphabet)];
+
+    offset[length] = '\0';
+
+    return QString(offset);
 }

@@ -25,6 +25,7 @@ public:
     int getMaxHit();
     int setMaxHit(int n);
     static QString HashKey(const QString &key, QCryptographicHash::Algorithm type);
+    static QString pwGenerate(int length);
 private:
     QCryptographicHash::Algorithm iType;
     QString strPassword;
