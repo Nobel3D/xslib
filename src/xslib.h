@@ -11,5 +11,7 @@
 #include "xsserverssl.h"
 #include "xsclientssl.h"
 #include "xsobject.h"
+#include "xsserver.h"
+#include "xsclient.h"
 
 #endif // XSLIB_H

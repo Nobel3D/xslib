@@ -33,7 +33,9 @@ SOURCES +=\
     src/xsserverssl.cpp \
     src/xsclientssl.cpp \
     src/xspassword.cpp \
-    src/xsobject.cpp
+    src/xsobject.cpp \
+    src/xsclient.cpp \
+    src/xsserver.cpp
 
 HEADERS +=\
     src/xslib_global.h \
@@ -47,7 +49,9 @@ HEADERS +=\
     src/xsserverssl.h \
     src/xsclientssl.h \
     src/xspassword.h \
-    src/xsobject.h
+    src/xsobject.h \
+    src/xsclient.h \
+    src/xsserver.h
 
 unix {
     target.path = /usr/lib
