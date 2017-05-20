@@ -123,11 +123,11 @@ QString xsPassword::getClearPassword() const
     return strClear;
 }
 
-int xsPassword::getHit()
+int xsPassword::getHit() const
 {
     return iHit;
 }
-int xsPassword::getMaxHit()
+int xsPassword::getMaxHit() const
 {
     return iMaxHit;
 }
@@ -149,24 +149,36 @@ QString xsPassword::HashKey(const QString &key, QCryptographicHash::Algorithm ty
     return hasher.result();
 }
 
-QString xsPassword::pwGenerate(int length)
+QString xsPassword::generate(int length, bool symbols, bool spaces, bool unicode, bool numbers, bool lowers, bool uppers)
 {
-    char offset[length + 1];
-    char alphabet[] = {
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n',
-        'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N',
-        'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-
-        '2', '3', '4', '6', '7', '8', '9'
-    };
-
+    QChar tmp;
+    QString offset;
+    bool pass = false;
     srand(time(0));
-    for (int i = 0; i < length; i++)
-        offset[i] = alphabet[rand() % sizeof(alphabet)];
 
-    offset[length] = '\0';
+    while(offset.length() < length)
+    {
+        if(unicode)
+            tmp = (unsigned short)rand() % MAX_UNICODE;
+        else
+            tmp = (char)rand() % MAX_ASCII;
+        if(tmp.isUpper() && uppers)
+            pass = true;
+        else if(tmp.isLower() && lowers)
+            pass = true;
+        else if(tmp.isDigit() && numbers)
+            pass = true;
+        else if(tmp.isSpace() && spaces)
+            pass = true;
+        else if(tmp.isSymbol() && symbols)
+            pass = true;
+        else
+            pass = false;
 
-    return QString(offset);
+        if(pass)
+            offset.append(tmp);
+
+    }
+
+    return offset;
 }
