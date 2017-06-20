@@ -108,7 +108,7 @@ int xsPassword::setPassword(QString &passwd, bool copyClear)
     return OK;
 }
 
-int xsPassword::setAlgorithm(QCryptographicHash::Algorithm type)
+void xsPassword::setAlgorithm(QCryptographicHash::Algorithm type)
 {
     iType = type;
 }

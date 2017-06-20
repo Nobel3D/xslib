@@ -32,7 +32,7 @@ QByteArray xsClientSsl::Read(int delay)
 int xsClientSsl::Write(const QByteArray &msg, int delay)
 {
     socket->write(msg);
-    socket->waitForBytesWritten();
+    socket->waitForBytesWritten(delay);
     return OK;
 }
 

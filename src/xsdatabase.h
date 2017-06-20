@@ -4,8 +4,9 @@
 #include "xslib_global.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QSqlField>
 
-class XSLIBSHARED_EXPORT xsDatabase //TODO: ADD VALUES AND FIELDS CLASS!
+class XSLIBSHARED_EXPORT xsDatabase
 {
 public:
     xsDatabase(const QString& file);
@@ -14,40 +15,49 @@ public:
     ~xsDatabase();
 
     bool connect(const QString& file);
-    int getStatus() const;
 
     bool createTable(const QString &table, const QString &fields);
     bool useTable(const QString &table);
-    bool existTable(const QString &table);
 
-    bool addValue(const QStringList &values);
-    bool updateValue(const QString &field, const QString &value, int id);
-    bool removeValue(const QString& field, const QString& value);
-    bool updateValue(const QString &field, const QString &oldvalue, const QString &newvalue);
+    bool addValue(const QList<QVariant> &values);
+    bool updateValue(const QString &field, const QVariant &value, int id); //TODO: manage recursive values
+    bool removeValue(const QString& field, const QVariant& value);
+    bool updateValue(const QString &field, const QVariant &oldvalue, const QVariant &newvalue);
 
-    bool existValue(const QString& field, const QString &value);
-    QStringList printColumn(const QString& field);
-    QStringList printColumn(int field);
-    QString findValue(int field, int id);
-    QString findValue(const QString& field, int id);
-    int findValue(const QString& field, const QString& value);
+    bool existValue(const QString& field, const QVariant &value);
+
+    QList<QVariant> getColumn(const QString& field);
+    QList<QVariant> getColumn(int index);
+    QList<QVariant> getRow(int index);
+
+    QVariant findValue(int field, int id);
+    QVariant findValue(const QString& field, int id);
+    int findValue(const QString& field, const QVariant& value);
 
     bool clearTable();
 
-    QString format(const QStringList &list, bool text = false);
+    QString format(const QVariant &value);
+    QString format(const QList<QVariant> &list);
+    QString format(const QStringList &list);
 
     int getFieldCount();
     QStringList getTables();
-    QStringList getFieldsList();
-    QString getFieldName(int x);
+    QStringList getFields(bool id = false);
+
+    bool existField(const QString &field);
+    bool existTable(const QString &table);
+
+    QSqlField getField(int index);
+    QSqlField getField(const QString &name);
+
     QString getTable();
     QString getMessage();
     QString getLastQuery();
 private:
     QString usingTable;
-    QSqlDatabase db;
+    QSqlDatabase* db;
     QSqlQuery* query;
-    int status;
+    QSqlDriver* driver;
 };
 
 

@@ -16,22 +16,17 @@ xsDatabase::xsDatabase()
 
 xsDatabase::~xsDatabase()
 {
-    if (db.isOpen())
-        db.close();
+    if (db->isOpen())
+        db->close();
 }
 
 bool xsDatabase::connect(const QString& file)
 {
-    db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(file);
-    status = db.open() ? OK : FAIL;
-    query = new QSqlQuery(db);
-    return status == OK;
-}
-
-int xsDatabase::getStatus() const
-{
-    return status;
+    db = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
+    db->setDatabaseName(file);
+    query = new QSqlQuery(*db);
+    driver = db->driver();
+    return db->open();
 }
 
 bool xsDatabase::createTable(const QString& table, const QString& fields)
@@ -51,161 +46,210 @@ bool xsDatabase::useTable(const QString &table)
 
 bool xsDatabase::existTable(const QString &table)
 {
-    return db.tables().contains(table);
+    return db->tables().contains(table);
 }
 
-bool xsDatabase::addValue(const QStringList& values)
+bool xsDatabase::existField(const QString &field)
 {
-    if (values.isEmpty())
-        return false;
+    return db->tables().contains(field);
+}
 
-    QStringList fields = getFieldsList();
+bool xsDatabase::addValue(const QList<QVariant> &values)
+{
+    X_PARAMS(values.isEmpty())
+
+    QStringList fields = getFields();
 
     return query->exec("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
 }
 
-bool xsDatabase::updateValue(const QString &field, const QString &value, int id)
+bool xsDatabase::updateValue(const QString &field, const QVariant &value, int id)
 {
-    if(field.isEmpty() || value.isEmpty() || id < 0)
-        return false;
+    X_PARAMS(field.isEmpty() || value.isNull() || id < 0);
 
-    return query->exec("UPDATE " + usingTable + " SET " + field + " = '" + value + "' WHERE ID = " + QString::number(id));
+    return query->exec("UPDATE " + usingTable + " SET " + field + " = '" + format(value) + "' WHERE ID = " + QString::number(id));
 }
 
-bool xsDatabase::removeValue(const QString& field, const QString& value)
+bool xsDatabase::removeValue(const QString& field, const QVariant& value)
 {
-    if (field.isEmpty() || value.isEmpty())
-        return false;
+    X_PARAMS (field.isEmpty() || value.isNull())
 
     if (existValue(field, value))
         return false;
 
-    return query->exec("DELETE FROM " + usingTable + " WHERE " + field + " = (" + value + ")");
+    return query->exec("DELETE FROM " + usingTable + " WHERE " + field + " = (" +format(value) + ")");
 }
 
-bool xsDatabase::updateValue(const QString &field, const QString &oldvalue, const QString &newvalue)
+bool xsDatabase::updateValue(const QString &field, const QVariant &oldvalue, const QVariant &newvalue)
 {
-    if (field.isEmpty() || oldvalue.isEmpty() || newvalue.isEmpty())
-        return false;
+    X_PARAMS(field.isEmpty() || oldvalue.isNull() || newvalue.isNull())
 
     if (!existValue(field, oldvalue))
         return false;
 
-    return query->exec("UPDATE " + usingTable + " SET " + field + " = '" + newvalue + "' WHERE " + field + " = '" + oldvalue + "'");
+    return query->exec("UPDATE " + usingTable + " SET " + field + " = '" + format(newvalue) + "' WHERE " + field + " = '" + format(oldvalue) + "'");
 }
 
-QStringList xsDatabase::printColumn(const QString& field)
+QList<QVariant> xsDatabase::getColumn(int field)
 {
-    QStringList offset;
+    X_PARAMS(field < 0);
+    QList<QVariant> offset;
     query->exec("SELECT * FROM " + usingTable);
-    int id = query->record().indexOf(field);
     while (query->next())
-        offset.append(query->value(id).toString());
+        offset.append(query->value(field));
 
     return offset;
 }
 
-QStringList xsDatabase::printColumn(int field)
+QList<QVariant> xsDatabase::getColumn(const QString& field)
 {
-    QStringList offset;
+    X_PARAMS(field.isEmpty());
+    QList<QVariant> offset;
     query->exec("SELECT * FROM " + usingTable);
     while (query->next())
-        offset.append(query->value(field).toString());
+        offset.append(query->value(field));
 
     return offset;
 }
 
-QString xsDatabase::findValue(int field, int id)
+
+QList<QVariant> xsDatabase::getRow(int index)
 {
-    if (field < 0 || id < 0)
-        return "";
+    QList<QVariant> out;
+
+    if (index < 1)
+        return out;
+
+    query->exec("SELECT * FROM " + usingTable);
+    int fields = getFieldCount();
+    int j = 0;
+
+    while(j++ < index)
+        query->next();
+
+    for (int i = 0; i <= fields; i++)
+            out.append(query->value(i));
+
+    return out;
+}
+
+QVariant xsDatabase::findValue(int field, int id)
+{
+    X_PARAMS(field < 0 || id < 0);
 
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(i == id)
-            return query->value(field).toString();
+            return query->value(field);
 
     return "";
 }
 
-QString xsDatabase::findValue(const QString& field, int id)
+QVariant xsDatabase::findValue(const QString& field, int id)
 {
-    if (field.isEmpty() || id < 0)
-        return "";
+    X_PARAMS(field.isEmpty() || id < 0);
 
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(i == id)
-            return query->value(field).toString();
+            return query->value(field);
 
     return "";
 }
 
-int xsDatabase::findValue(const QString& field, const QString& value)
+int xsDatabase::findValue(const QString& field, const QVariant &value)
 {
-    if (field.isEmpty() || value.isEmpty())
-        return FAIL;
+    X_PARAMS(field.isEmpty() || value.isNull());
 
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
-        if(query->value(field).toString() == value)
+        if(query->value(field) == value)
             return i;
 
     return -1;
 }
 
-bool xsDatabase::existValue(const QString& field, const QString& value)
+bool xsDatabase::existValue(const QString& field, const QVariant &value)
 {
+    X_PARAMS(field.isEmpty() || value.isNull());
     return findValue(field, value) != -1;
 }
 
 bool xsDatabase::clearTable()
 {
-    if (!query->exec("DELETE FROM " + usingTable + ")"))
+    if (!query->exec("DELETE FROM " + usingTable ))
         return false;
 
     return true;
 }
 
-QString xsDatabase::format(const QStringList &list, bool text)
+QString xsDatabase::format(const QVariant &value)
+{
+    QString offset;
+
+    if(value.type() != QVariant::String)
+        offset.append(value.toString());
+    else
+        offset.append("\"" + value.toString() + "\"");
+    return offset; //Erase last character ','
+}
+
+QString xsDatabase::format(const QList<QVariant> &list)
 {
     int x = list.size();
-    QString offset = "";
+    QString offset;
 
     for(int i = 0; i < x; i++)
-        if(text)
-            offset.append(list.value(i) + ",");      //FIELDS != FIELD
+        if(list.at(i).type() != QVariant::String)
+            offset.append(list.at(i).toString() + ",");
         else
-            offset.append("\"" + list.value(i) + "\",");
+            offset.append("\"" + list.at(i).toString() + "\",");
     return offset.left(offset.length() - 1); //Erase last character ','
 }
 
-int xsDatabase::getFieldCount()
+QString xsDatabase::format(const QStringList &list)
 {
-    const QSqlDriver* driver = query->driver();
-    return driver->record(usingTable).count();
+    int x = list.size();
+    QString offset;
+
+    for(int i = 0; i < x; i++)
+            offset.append("\"" + list.at(i) + "\",");
+    return offset.left(offset.length() - 1); //Erase last character ','
 }
+
 
 QStringList xsDatabase::getTables()
 {
-    return db.tables();
+    return db->tables();
 }
 
-QStringList xsDatabase::getFieldsList()
+QStringList xsDatabase::getFields(bool id)
 {
     QStringList offset;
+    int i = 1;
+    if(id)
+        i = 0;
 
-    const QSqlDriver* driver = query->driver();
-    for(int i = 1; i < getFieldCount(); i++)
+    for(; i < getFieldCount(); i++)
         offset.append(driver->record(usingTable).fieldName(i));
 
     return offset;
 }
 
-QString xsDatabase::getFieldName(int x)
+
+QSqlField xsDatabase::getField(int index)
 {
-    const QSqlDriver* driver = query->driver();
-    return driver->record(usingTable).fieldName(x);
+    return driver->record(usingTable).field(index);
+}
+
+QSqlField xsDatabase::getField(const QString &name)
+{
+    return driver->record(usingTable).field(name);
+}
+
+int xsDatabase::getFieldCount()
+{
+    return driver->record(usingTable).count(); //start with value '0'
 }
 
 QString xsDatabase::getTable()

@@ -56,7 +56,7 @@ public:
     /* Change algorithm to hash storaged in #iType
      * @type New algorithm
      */
-    int setAlgorithm(QCryptographicHash::Algorithm type);
+    void setAlgorithm(QCryptographicHash::Algorithm type);
     /* Return hashed password storaged in #strPassword
      */
     QString getPassword() const;

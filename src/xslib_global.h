@@ -5,9 +5,13 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QDebug>
 
 #define OK 1
 #define FAIL 0
+
+#define X_PARAMS(ex) { if(ex) qWarning() << __FILE__ << ":" << __LINE__ << "in" << __func__ << "() -> Malformed parameters!"; }
+
 #ifdef WIN32
     #define GETUSER getenv("USERNAME")
 #endif
