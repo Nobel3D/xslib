@@ -51,8 +51,14 @@ bool xsDatabase::existTable(const QString &table)
 
 bool xsDatabase::existField(const QString &field)
 {
-    return db->tables().contains(field);
+    return driver->record(usingTable).field(field).isValid();
 }
+
+bool xsDatabase::existField(int field)
+{
+    return driver->record(usingTable).field(field).isValid();
+}
+
 
 bool xsDatabase::addValue(const QList<QVariant> &values)
 {
@@ -94,6 +100,9 @@ QList<QVariant> xsDatabase::getColumn(int field)
 {
     X_PARAMS(field < 0);
     QList<QVariant> offset;
+
+    X_NOT_FOUND_FIELD(field, offset);
+
     query->exec("SELECT * FROM " + usingTable);
     while (query->next())
         offset.append(query->value(field));
@@ -105,6 +114,9 @@ QList<QVariant> xsDatabase::getColumn(const QString& field)
 {
     X_PARAMS(field.isEmpty());
     QList<QVariant> offset;
+
+    X_NOT_FOUND_FIELD(field, offset);
+
     query->exec("SELECT * FROM " + usingTable);
     while (query->next())
         offset.append(query->value(field));
@@ -115,10 +127,10 @@ QList<QVariant> xsDatabase::getColumn(const QString& field)
 
 QList<QVariant> xsDatabase::getRow(int index)
 {
+    X_PARAMS(index < 0);
     QList<QVariant> out;
 
-    if (index < 1)
-        return out;
+    X_NOT_FOUND_FIELD(index, out);
 
     query->exec("SELECT * FROM " + usingTable);
     int fields = getFieldCount();
@@ -137,29 +149,33 @@ QVariant xsDatabase::findValue(int field, int id)
 {
     X_PARAMS(field < 0 || id < 0);
 
+    X_NOT_FOUND_FIELD(field, QVariant(QVariant::Invalid));
+
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(i == id)
             return query->value(field);
-
-    return "";
 }
 
 QVariant xsDatabase::findValue(const QString& field, int id)
 {
     X_PARAMS(field.isEmpty() || id < 0);
 
+    X_NOT_FOUND_FIELD(field, QVariant(QVariant::Invalid));
+
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(i == id)
             return query->value(field);
 
-    return "";
+    return QVariant();
 }
 
 int xsDatabase::findValue(const QString& field, const QVariant &value)
 {
     X_PARAMS(field.isEmpty() || value.isNull());
+
+    X_NOT_FOUND_FIELD(field, -1);
 
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)

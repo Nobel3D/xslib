@@ -45,6 +45,7 @@ public:
     QStringList getFields(bool id = false);
 
     bool existField(const QString &field);
+    bool existField(int field);
     bool existTable(const QString &table);
 
     QSqlField getField(int index);

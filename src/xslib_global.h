@@ -11,6 +11,7 @@
 #define FAIL 0
 
 #define X_PARAMS(ex) { if(ex) qWarning() << __FILE__ << ":" << __LINE__ << "in" << __func__ << "() -> Malformed parameters!"; }
+#define X_NOT_FOUND_FIELD(field, out) { if(!existField(field)) { qWarning() <<__func__ << "() -> Field" << field << "not found!"; return out; } } //field = field value - out = return value
 
 #ifdef WIN32
     #define GETUSER getenv("USERNAME")
