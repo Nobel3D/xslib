@@ -130,8 +130,6 @@ QList<QVariant> xsDatabase::getRow(int index)
     X_PARAMS(index < 0);
     QList<QVariant> out;
 
-    X_NOT_FOUND_FIELD(index, out);
-
     query->exec("SELECT * FROM " + usingTable);
     int fields = getFieldCount();
     int j = 0;
@@ -139,7 +137,7 @@ QList<QVariant> xsDatabase::getRow(int index)
     while(j++ < index)
         query->next();
 
-    for (int i = 0; i <= fields; i++)
+    for (int i = 0; i < fields; i++)
             out.append(query->value(i));
 
     return out;
@@ -266,6 +264,14 @@ QSqlField xsDatabase::getField(const QString &name)
 int xsDatabase::getFieldCount()
 {
     return driver->record(usingTable).count(); //start with value '0'
+}
+
+int xsDatabase::getRecordCount()
+{
+    int i=0;
+    query->exec("SELECT * FROM " + usingTable);
+    query->last();
+    return query->at();
 }
 
 QString xsDatabase::getTable()

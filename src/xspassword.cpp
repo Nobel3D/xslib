@@ -98,12 +98,14 @@ QString xsPassword::Load(const QString &pathfile)
     return offset;
 }
 
-int xsPassword::setPassword(QString &passwd, bool copyClear)
+int xsPassword::setPassword(QString &passwd, bool copyClear,  QCryptographicHash::Algorithm type , int maxhit)
 {
     if(copyClear)
         strClear = passwd;
 
-    strPassword = HashKey(passwd,iType);
+    strPassword = HashKey(passwd,type);
+    iType = type;
+    iMaxHit = maxhit;
     passwd.clear();
     return OK;
 }

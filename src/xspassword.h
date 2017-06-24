@@ -52,7 +52,7 @@ public:
      * @passwd Source of new password
      * @copyClear Will copy @passwd without hash in #strClear?
      */
-    int setPassword(QString &passwd, bool copyClear = false);
+    int setPassword(QString &passwd, bool copyClear = false, QCryptographicHash::Algorithm type = QCryptographicHash::Sha512, int maxhit = 6);
     /* Change algorithm to hash storaged in #iType
      * @type New algorithm
      */

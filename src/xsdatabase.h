@@ -41,6 +41,7 @@ public:
     QString format(const QStringList &list);
 
     int getFieldCount();
+    int getRecordCount();
     QStringList getTables();
     QStringList getFields(bool id = false);
 
