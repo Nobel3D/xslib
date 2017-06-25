@@ -29,12 +29,11 @@ bool xsDatabase::connect(const QString& file)
     return db->open();
 }
 
-bool xsDatabase::createTable(const QString& table, const QString& fields)
+bool xsDatabase::createTable(const QString& table, const QList<QSqlField> &fields)
 {
-    if (table.isEmpty() || fields.isEmpty())
-        return false;
+    X_PARAMS(table.isEmpty() || fields.isEmpty());
 
-    return query->exec("CREATE TABLE "+ table + "( id INTEGER PRIMARY KEY," + fields + ");");
+    return query->exec("CREATE TABLE "+ table + "(" + format(fields) + ")");
 }
 bool xsDatabase::useTable(const QString &table)
 {
@@ -49,14 +48,9 @@ bool xsDatabase::existTable(const QString &table)
     return db->tables().contains(table);
 }
 
-bool xsDatabase::existField(const QString &field)
+bool xsDatabase::existField(const QSqlField &field)
 {
-    return driver->record(usingTable).field(field).isValid();
-}
-
-bool xsDatabase::existField(int field)
-{
-    return driver->record(usingTable).field(field).isValid();
+    return driver->record(usingTable).field(field.name()).isValid();
 }
 
 
@@ -64,62 +58,42 @@ bool xsDatabase::addValue(const QList<QVariant> &values)
 {
     X_PARAMS(values.isEmpty())
 
-    QStringList fields = getFields();
-
-    return query->exec("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
+    return query->exec("INSERT INTO " + usingTable + " (" + format(getFields()) + ") VALUES (" + format(values) + ")");
 }
 
-bool xsDatabase::updateValue(const QString &field, const QVariant &value, int id)
+bool xsDatabase::updateValue(const QSqlField &field, const QVariant &value, int id)
 {
-    X_PARAMS(field.isEmpty() || value.isNull() || id < 0);
+    X_PARAMS(value.isNull() || id < 0);
+    X_FIELD(field, value, false);
 
-    return query->exec("UPDATE " + usingTable + " SET " + field + " = '" + format(value) + "' WHERE ID = " + QString::number(id));
+    return query->exec("UPDATE " + usingTable + " SET " + field.name() + " = '" + value.toString() + "' WHERE ID = " + QString::number(id));
 }
 
-bool xsDatabase::removeValue(const QString& field, const QVariant& value)
+bool xsDatabase::removeValue(const QSqlField &field, const QVariant& value)
 {
-    X_PARAMS (field.isEmpty() || value.isNull())
-
-    if (existValue(field, value))
-        return false;
-
-    return query->exec("DELETE FROM " + usingTable + " WHERE " + field + " = (" +format(value) + ")");
+    X_PARAMS (value.isNull());
+    X_FIELD(field, value, false);
+    return query->exec("DELETE FROM " + usingTable + " WHERE " + field.name() + " = (" + value.toString() + ")");
 }
 
-bool xsDatabase::updateValue(const QString &field, const QVariant &oldvalue, const QVariant &newvalue)
+bool xsDatabase::updateValue(const QSqlField &field, const QVariant &oldvalue, const QVariant &newvalue)
 {
-    X_PARAMS(field.isEmpty() || oldvalue.isNull() || newvalue.isNull())
-
-    if (!existValue(field, oldvalue))
-        return false;
-
-    return query->exec("UPDATE " + usingTable + " SET " + field + " = '" + format(newvalue) + "' WHERE " + field + " = '" + format(oldvalue) + "'");
+    X_PARAMS(oldvalue.isNull() || newvalue.isNull())
+    X_FIELD(field, oldvalue, false);
+    X_FIELD(field, newvalue, false);
+    return query->exec("UPDATE " + usingTable + " SET " + field.name() + " = '" + newvalue.toString() + "' WHERE " + field.name() + " = '" + oldvalue.toString() + "'");
 }
 
-QList<QVariant> xsDatabase::getColumn(int field)
+
+QList<QVariant> xsDatabase::getColumn(const QSqlField& field)
 {
-    X_PARAMS(field < 0);
     QList<QVariant> offset;
 
     X_NOT_FOUND_FIELD(field, offset);
 
     query->exec("SELECT * FROM " + usingTable);
     while (query->next())
-        offset.append(query->value(field));
-
-    return offset;
-}
-
-QList<QVariant> xsDatabase::getColumn(const QString& field)
-{
-    X_PARAMS(field.isEmpty());
-    QList<QVariant> offset;
-
-    X_NOT_FOUND_FIELD(field, offset);
-
-    query->exec("SELECT * FROM " + usingTable);
-    while (query->next())
-        offset.append(query->value(field));
+        offset.append(query->value(field.name()));
 
     return offset;
 }
@@ -143,49 +117,37 @@ QList<QVariant> xsDatabase::getRow(int index)
     return out;
 }
 
-QVariant xsDatabase::findValue(int field, int id)
+QVariant xsDatabase::findValue(const QSqlField& field, int id)
 {
-    X_PARAMS(field < 0 || id < 0);
+    X_PARAMS(id < 0);
 
     X_NOT_FOUND_FIELD(field, QVariant(QVariant::Invalid));
 
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(i == id)
-            return query->value(field);
-}
-
-QVariant xsDatabase::findValue(const QString& field, int id)
-{
-    X_PARAMS(field.isEmpty() || id < 0);
-
-    X_NOT_FOUND_FIELD(field, QVariant(QVariant::Invalid));
-
-    query->exec("SELECT * FROM " + usingTable);
-    for (int i = 0; query->next(); i++)
-        if(i == id)
-            return query->value(field);
+            return query->value(field.name());
 
     return QVariant();
 }
 
-int xsDatabase::findValue(const QString& field, const QVariant &value)
+int xsDatabase::findValue(const QSqlField& field, const QVariant &value)
 {
-    X_PARAMS(field.isEmpty() || value.isNull());
-
-    X_NOT_FOUND_FIELD(field, -1);
+    X_PARAMS(value.isNull());
+    X_FIELD(field, value, -1);
 
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
-        if(query->value(field) == value)
+        if(query->value(field.name()) == value)
             return i;
 
     return -1;
 }
 
-bool xsDatabase::existValue(const QString& field, const QVariant &value)
+bool xsDatabase::existValue(const QSqlField &field, const QVariant &value)
 {
-    X_PARAMS(field.isEmpty() || value.isNull());
+    X_PARAMS(value.isNull());
+    X_FIELD(field, value, false);
     return findValue(field, value) != -1;
 }
 
@@ -197,23 +159,11 @@ bool xsDatabase::clearTable()
     return true;
 }
 
-QString xsDatabase::format(const QVariant &value)
-{
-    QString offset;
-
-    if(value.type() != QVariant::String)
-        offset.append(value.toString());
-    else
-        offset.append("\"" + value.toString() + "\"");
-    return offset; //Erase last character ','
-}
-
 QString xsDatabase::format(const QList<QVariant> &list)
 {
-    int x = list.size();
     QString offset;
 
-    for(int i = 0; i < x; i++)
+    for(int i = 0; i < list.size(); i++)
         if(list.at(i).type() != QVariant::String)
             offset.append(list.at(i).toString() + ",");
         else
@@ -227,10 +177,18 @@ QString xsDatabase::format(const QStringList &list)
     QString offset;
 
     for(int i = 0; i < x; i++)
-            offset.append("\"" + list.at(i) + "\",");
+            offset.append(list.at(i) + ",");
     return offset.left(offset.length() - 1); //Erase last character ','
 }
 
+QString xsDatabase::format(const QList<QSqlField> &list)
+{
+    QString format;
+
+    for(int i = 0; i < list.count(); i++)
+        format.append(list.at(i).name() + " " + type(list.at(i).type()) + ",");
+    return format.left(format.length() - 1);
+}
 
 QStringList xsDatabase::getTables()
 {
@@ -285,4 +243,43 @@ QString xsDatabase::getMessage()
 QString xsDatabase::getLastQuery()
 {
     return query->lastQuery();
+}
+
+QString xsDatabase::type(const QVariant &var)
+{
+    switch(var.type())
+    {
+    case QVariant::LongLong:
+        return "INTEGER PRIMARY KEY";
+    case QVariant::String:
+        return "TEXT";
+    case QVariant::Invalid:
+        return "NULL";
+    case QVariant::Int:
+        return "INTEGER";
+    case QVariant::Double:
+        return "REAL";
+    case QVariant::ByteArray:
+        return "BLOB";
+    default:
+        X_INVALID_TYPE(var);
+    }
+}
+
+QVariant xsDatabase::type(const QString &str)
+{
+    if(str == "INTEGER PRIMARY KEY")
+        return QVariant(QVariant::LongLong);
+    else if(str == "TEXT")
+        return QVariant(QVariant::String);
+    else if(str == "NULL")
+        return QVariant(QVariant::Invalid);
+    else if(str == "INTEGER")
+        return QVariant(QVariant::Int);
+    else if(str == "REAL")
+        return QVariant(QVariant::Double);
+    else if(str == "BLOB")
+        return QVariant(QVariant::ByteArray);
+    else
+        qWarning() << __func__ << "() Invalid type name: " << str;
 }

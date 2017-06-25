@@ -16,37 +16,34 @@ public:
 
     bool connect(const QString& file);
 
-    bool createTable(const QString &table, const QString &fields);
+    bool createTable(const QString &table, const QList<QSqlField> &fields);
     bool useTable(const QString &table);
 
     bool addValue(const QList<QVariant> &values);
-    bool updateValue(const QString &field, const QVariant &value, int id); //TODO: manage recursive values
-    bool removeValue(const QString& field, const QVariant& value);
-    bool updateValue(const QString &field, const QVariant &oldvalue, const QVariant &newvalue);
+    bool updateValue(const QSqlField &field, const QVariant &value, int id); //TODO: manage recursive values
+    bool removeValue(const QSqlField &field, const QVariant &value);
+    bool updateValue(const QSqlField &field, const QVariant &oldvalue, const QVariant &newvalue);
 
-    bool existValue(const QString& field, const QVariant &value);
+    bool existValue(const QSqlField& field, const QVariant &value);
 
-    QList<QVariant> getColumn(const QString& field);
-    QList<QVariant> getColumn(int index);
+    QList<QVariant> getColumn(const QSqlField &field);
     QList<QVariant> getRow(int index);
 
-    QVariant findValue(int field, int id);
-    QVariant findValue(const QString& field, int id);
-    int findValue(const QString& field, const QVariant& value);
+    QVariant findValue(const QSqlField& field, int id);
+    int findValue(const QSqlField& field, const QVariant& value);
 
     bool clearTable();
 
-    QString format(const QVariant &value);
     QString format(const QList<QVariant> &list);
     QString format(const QStringList &list);
+    QString format(const QList<QSqlField> &list);
 
     int getFieldCount();
     int getRecordCount();
     QStringList getTables();
     QStringList getFields(bool id = false);
 
-    bool existField(const QString &field);
-    bool existField(int field);
+    bool existField(const QSqlField &field);
     bool existTable(const QString &table);
 
     QSqlField getField(int index);
@@ -55,6 +52,9 @@ public:
     QString getTable();
     QString getMessage();
     QString getLastQuery();
+
+    QString type(const QVariant &var);
+    QVariant type(const QString &str);
 private:
     QString usingTable;
     QSqlDatabase* db;
