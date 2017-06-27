@@ -33,7 +33,7 @@ bool xsDatabase::createTable(const QString& table, const QList<QSqlField> &field
 {
     X_PARAMS(table.isEmpty() || fields.isEmpty());
 
-    return query->exec("CREATE TABLE "+ table + "(" + format(fields) + ")");
+    return query->exec("CREATE TABLE "+ table + "(" + format(fields, true) + ")");
 }
 bool xsDatabase::useTable(const QString &table)
 {
@@ -53,14 +53,19 @@ bool xsDatabase::existField(const QSqlField &field)
     return driver->record(usingTable).field(field.name()).isValid();
 }
 
-
 bool xsDatabase::addValue(const QList<QVariant> &values)
 {
     X_PARAMS(values.isEmpty())
 
-    return query->exec("INSERT INTO " + usingTable + " (" + format(getFields()) + ") VALUES (" + format(values) + ")");
+    return query->exec("INSERT INTO " + usingTable + " (" + format(getFields(true)) + ") VALUES (" + format(values) + ")");
 }
 
+bool xsDatabase::addValue(const QList<QSqlField> &fields, const QList<QVariant> &values)
+{
+    X_PARAMS(values.isEmpty())
+
+    return query->exec("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
+}
 bool xsDatabase::updateValue(const QSqlField &field, const QVariant &value, int id)
 {
     X_PARAMS(value.isNull() || id < 0);
@@ -125,7 +130,7 @@ QVariant xsDatabase::findValue(const QSqlField& field, int id)
 
     query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
-        if(i == id)
+        if(i == id) //TODO: Not ordered data fix!
             return query->value(field.name());
 
     return QVariant();
@@ -163,12 +168,13 @@ QString xsDatabase::format(const QList<QVariant> &list)
 {
     QString offset;
 
-    for(int i = 0; i < list.size(); i++)
+    for(int i = 0; i < list.count(); i++)
         if(list.at(i).type() != QVariant::String)
             offset.append(list.at(i).toString() + ",");
         else
             offset.append("\"" + list.at(i).toString() + "\",");
-    return offset.left(offset.length() - 1); //Erase last character ','
+
+    return offset.left(offset.length() - 1);
 }
 
 QString xsDatabase::format(const QStringList &list)
@@ -178,16 +184,21 @@ QString xsDatabase::format(const QStringList &list)
 
     for(int i = 0; i < x; i++)
             offset.append(list.at(i) + ",");
-    return offset.left(offset.length() - 1); //Erase last character ','
+
+    return offset.left(offset.length() - 1);
 }
 
-QString xsDatabase::format(const QList<QSqlField> &list)
+QString xsDatabase::format(const QList<QSqlField> &list, bool create)
 {
-    QString format;
+    QString offset;
 
     for(int i = 0; i < list.count(); i++)
-        format.append(list.at(i).name() + " " + type(list.at(i).type()) + ",");
-    return format.left(format.length() - 1);
+        if(create)
+            offset.append(list.at(i).name() + " " + type(list.at(i).type()) + ",");
+        else
+            offset.append(list.at(i).name() + ",");
+
+    return offset.left(offset.length() - 1);
 }
 
 QStringList xsDatabase::getTables()
@@ -195,14 +206,11 @@ QStringList xsDatabase::getTables()
     return db->tables();
 }
 
-QStringList xsDatabase::getFields(bool id)
+QStringList xsDatabase::getFields(bool getID)
 {
     QStringList offset;
-    int i = 1;
-    if(id)
-        i = 0;
 
-    for(; i < getFieldCount(); i++)
+    for(int i = getID ? 1 : 0; i < getFieldCount(); i++)
         offset.append(driver->record(usingTable).fieldName(i));
 
     return offset;
@@ -226,7 +234,6 @@ int xsDatabase::getFieldCount()
 
 int xsDatabase::getRecordCount()
 {
-    int i=0;
     query->exec("SELECT * FROM " + usingTable);
     query->last();
     return query->at();

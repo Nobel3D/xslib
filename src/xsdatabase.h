@@ -20,7 +20,8 @@ public:
     bool useTable(const QString &table);
 
     bool addValue(const QList<QVariant> &values);
-    bool updateValue(const QSqlField &field, const QVariant &value, int id); //TODO: manage recursive values
+    bool addValue(const QList<QSqlField> &fields, const QList<QVariant> &values);
+    bool updateValue(const QSqlField &field, const QVariant &value, int id);
     bool removeValue(const QSqlField &field, const QVariant &value);
     bool updateValue(const QSqlField &field, const QVariant &oldvalue, const QVariant &newvalue);
 
@@ -36,12 +37,12 @@ public:
 
     QString format(const QList<QVariant> &list);
     QString format(const QStringList &list);
-    QString format(const QList<QSqlField> &list);
+    QString format(const QList<QSqlField> &list, bool create = false);
 
     int getFieldCount();
     int getRecordCount();
     QStringList getTables();
-    QStringList getFields(bool id = false);
+    QStringList getFields(bool getID = false);
 
     bool existField(const QSqlField &field);
     bool existTable(const QString &table);
