@@ -42,7 +42,7 @@ public:
     int getFieldCount();
     int getRecordCount();
     QStringList getTables();
-    QStringList getFields(bool getID = false);
+    QList<QSqlField> getFields(bool hideID = false);
 
     bool existField(const QSqlField &field);
     bool existTable(const QString &table);
@@ -55,7 +55,11 @@ public:
     QString getLastQuery();
 
     QString type(const QVariant &var);
+    QString type(const QVariant::Type &t);
     QVariant type(const QString &str);
+
+    bool Import(const QString &table, const QString &dir);
+    bool Export(const QString &dir);
 private:
     QString usingTable;
     QSqlDatabase* db;

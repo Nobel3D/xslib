@@ -4,6 +4,7 @@
 #include <QSqlError>
 #include <QSqlRecord>
 #include <QVariant>
+#include <QFile>
 
 xsDatabase::xsDatabase(const QString &file)
 {
@@ -113,7 +114,7 @@ QList<QVariant> xsDatabase::getRow(int index)
     int fields = getFieldCount();
     int j = 0;
 
-    while(j++ < index)
+    while(j++ <= index)
         query->next();
 
     for (int i = 0; i < fields; i++)
@@ -206,12 +207,12 @@ QStringList xsDatabase::getTables()
     return db->tables();
 }
 
-QStringList xsDatabase::getFields(bool getID)
+QList<QSqlField> xsDatabase::getFields(bool hideID)
 {
-    QStringList offset;
+    QList<QSqlField> offset;
 
-    for(int i = getID ? 1 : 0; i < getFieldCount(); i++)
-        offset.append(driver->record(usingTable).fieldName(i));
+    for(int i = hideID ? 1 : 0; i < getFieldCount(); i++)
+        offset.append(driver->record(usingTable).field(i));
 
     return offset;
 }
@@ -254,7 +255,12 @@ QString xsDatabase::getLastQuery()
 
 QString xsDatabase::type(const QVariant &var)
 {
-    switch(var.type())
+    return type(var.type());
+}
+
+QString xsDatabase::type(const QVariant::Type &t)
+{
+    switch(t)
     {
     case QVariant::LongLong:
         return "INTEGER PRIMARY KEY";
@@ -269,7 +275,7 @@ QString xsDatabase::type(const QVariant &var)
     case QVariant::ByteArray:
         return "BLOB";
     default:
-        X_INVALID_TYPE(var);
+        qWarning() << __func__ << "() -> Type in data" << t << "is invalid!";
     }
 }
 
@@ -289,4 +295,58 @@ QVariant xsDatabase::type(const QString &str)
         return QVariant(QVariant::ByteArray);
     else
         qWarning() << __func__ << "() Invalid type name: " << str;
+}
+
+bool xsDatabase::Import(const QString &table, const QString &dir)
+{
+    X_PARAMS(dir.isEmpty() || table.isEmpty());
+
+    QString oldTable = usingTable;
+    QFile file(dir);
+    file.open(QFile::ReadOnly);
+    QString header = file.readLine(); //first row (name field and type)
+    header.replace('\n',"");
+    if(!query->exec("CREATE TABLE "+ table + "(" + header + ")"))
+        return false;
+
+    usingTable = table;
+
+    QList<QByteArray> buffer;
+    QList<QVariant> values;
+    QVariant val;
+    while(file.bytesAvailable())
+    {
+        buffer = file.readLine().split(',');
+        for(int i = 0; i < buffer.count() - 1; i++)
+        {
+            val = QVariant(buffer.at(i));
+            val.convert(driver->record(table).field(i).type());
+            values.append(val);
+        }
+        if(!addValue(getFields(), values))
+            qDebug() << query->lastQuery() << "\n" << query->lastError().text();
+        values.clear();
+    }
+    usingTable = oldTable;
+    file.close();
+    return true;
+}
+
+bool xsDatabase::Export(const QString &dir)
+{
+    X_PARAMS(dir.isEmpty());
+
+    QFile file(dir);
+    file.open(QFile::WriteOnly);
+    file.write(format(getFields(), true).toLatin1() + "\n"); //TODO: add PRIMARY KEY
+
+    query->exec("SELECT * FROM " + usingTable);
+    while(query->next())
+    {
+        for(int column = 0; column < getFieldCount(); column++)
+            file.write(query->value(column).toString().toLatin1() + ",");
+        file.write("\n");
+    }
+    file.close();
+    return true;
 }
