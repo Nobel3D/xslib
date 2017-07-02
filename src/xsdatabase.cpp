@@ -54,7 +54,7 @@ bool xsDatabase::existField(const QSqlField &field)
     return driver->record(usingTable).field(field.name()).isValid();
 }
 
-bool xsDatabase::addValue(const QList<QVariant> &values)
+bool xsDatabase::addValue(const QList<QVariant> &values) //TODO: TAKE ID?
 {
     X_PARAMS(values.isEmpty())
 

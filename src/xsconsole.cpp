@@ -36,11 +36,18 @@
     }
 #endif
 
-QString xsConsole::Shell(QString var1, QString var2) //TODO: ADD LAST INPUT
+QStringList xsConsole::Shell(QString var1, QString var2) //TODO: ADD LAST INPUT
 {
-    QString offset;
+    QString buffer;
     xsConsole() << "[" << var1 << ":" << var2 << "]$ ";
-    xsConsole() >> offset;
+    xsConsole() >> buffer;
+    QStringList offset = buffer.split(' ');
+    for(int i = 0; i < offset.size(); i++)
+    {
+        offset.at(i).trimmed();
+        if(offset.at(i).isEmpty())
+            offset.removeAt(i--);
+    }
     return offset;
 }
 

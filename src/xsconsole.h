@@ -17,7 +17,7 @@ public:
     void setXY(int x, int y);
     void getXY(int& x, int& y);
     static xsPassword ReadPasswd(bool copyClear = false, QCryptographicHash::Algorithm type = QCryptographicHash::Sha512, int maxhit = 6);
-    static QString Shell(QString var1, QString var2);
+    static QStringList Shell(QString var1, QString var2);
     xsConsole& operator <<(QString text);
     xsConsole& operator >>(QString& text);
 

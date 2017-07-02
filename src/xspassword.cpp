@@ -81,7 +81,6 @@ int xsPassword::Save(const QString &pathfile, QString &passwd, QCryptographicHas
     file.open(QIODevice::WriteOnly);
     file.write(HashKey(passwd, type).toUtf8());
     file.close();
-    passwd.clear();
     return OK;
 }
 
@@ -106,7 +105,6 @@ int xsPassword::setPassword(QString &passwd, bool copyClear,  QCryptographicHash
     strPassword = HashKey(passwd,type);
     iType = type;
     iMaxHit = maxhit;
-    passwd.clear();
     return OK;
 }
 
@@ -148,7 +146,7 @@ QString xsPassword::HashKey(const QString &key, QCryptographicHash::Algorithm ty
 {
     QCryptographicHash hasher(type);
     hasher.addData(key.toUtf8());
-    return hasher.result();
+    return hasher.result().toHex();
 }
 
 QString xsPassword::generate(int length, bool symbols, bool spaces, bool unicode, bool numbers, bool lowers, bool uppers)
