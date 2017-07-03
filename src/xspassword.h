@@ -12,7 +12,7 @@ class XSLIBSHARED_EXPORT xsPassword
 {
 public:
     xsPassword();
-    xsPassword(QString &passwd, bool copyClear = false, QCryptographicHash::Algorithm type = QCryptographicHash::Sha512, int maxhit = 6);
+    xsPassword(const QString &passwd, bool copyClear = false, QCryptographicHash::Algorithm type = QCryptographicHash::Sha512, int maxhit = 6);
     /* Check if @hit password is equivalent of #strPassword
      * W: All attemps will be count and if @iHit is higher than @iMaxHit return is always #FAIL
      * @hit Password to check
@@ -52,7 +52,7 @@ public:
      * @passwd Source of new password
      * @copyClear Will copy @passwd without hash in #strClear?
      */
-    int setPassword(QString &passwd, bool copyClear = false, QCryptographicHash::Algorithm type = QCryptographicHash::Sha512, int maxhit = 6);
+    int setPassword(const QString &passwd, bool copyClear = false, QCryptographicHash::Algorithm type = QCryptographicHash::Sha512, int maxhit = 6);
     /* Change algorithm to hash storaged in #iType
      * @type New algorithm
      */

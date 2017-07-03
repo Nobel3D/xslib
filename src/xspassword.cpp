@@ -6,7 +6,7 @@ xsPassword::xsPassword()
     setMaxHit(6);
 }
 
-xsPassword::xsPassword(QString &passwd, bool copyClear, QCryptographicHash::Algorithm type , int maxhit)
+xsPassword::xsPassword(const QString &passwd, bool copyClear, QCryptographicHash::Algorithm type , int maxhit)
 {
     setAlgorithm(type);
     setPassword(passwd, copyClear);
@@ -97,7 +97,7 @@ QString xsPassword::Load(const QString &pathfile)
     return offset;
 }
 
-int xsPassword::setPassword(QString &passwd, bool copyClear,  QCryptographicHash::Algorithm type , int maxhit)
+int xsPassword::setPassword(const QString &passwd, bool copyClear,  QCryptographicHash::Algorithm type , int maxhit)
 {
     if(copyClear)
         strClear = passwd;

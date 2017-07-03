@@ -9,12 +9,12 @@
 class XSLIBSHARED_EXPORT xsDatabase
 {
 public:
-    xsDatabase(const QString& file);
+    xsDatabase(const QString& file, const QString &connection_name);
     xsDatabase();
 
     ~xsDatabase();
 
-    bool connect(const QString& file);
+    bool connect(const QString& file, const QString &connection_name);
 
     bool createTable(const QString &table, const QList<QSqlField> &fields);
     bool useTable(const QString &table);

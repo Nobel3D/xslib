@@ -6,9 +6,9 @@
 #include <QVariant>
 #include <QFile>
 
-xsDatabase::xsDatabase(const QString &file)
+xsDatabase::xsDatabase(const QString &file, const QString &connection_name)
 {
-    connect(file);
+    connect(file, connection_name);
 }
 xsDatabase::xsDatabase()
 {
@@ -21,9 +21,9 @@ xsDatabase::~xsDatabase()
         db->close();
 }
 
-bool xsDatabase::connect(const QString& file)
+bool xsDatabase::connect(const QString& file, const QString &connection_name)
 {
-    db = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
+    db = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE", connection_name));
     db->setDatabaseName(file);
     query = new QSqlQuery(*db);
     driver = db->driver();
