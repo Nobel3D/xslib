@@ -5,11 +5,12 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlField>
+#include <QFileInfo>
 
 class XSLIBSHARED_EXPORT xsDatabase
 {
 public:
-    xsDatabase(const QString& file, const QString &connection_name);
+    xsDatabase(const QFileInfo& file, const QString &connection_name);
     xsDatabase();
 
     ~xsDatabase();
@@ -21,6 +22,7 @@ public:
 
     bool addValue(const QList<QVariant> &values);
     bool addValue(const QList<QSqlField> &fields, const QList<QVariant> &values);
+    bool addValue();
     bool updateValue(const QSqlField &field, const QVariant &value, int id);
     bool removeValue(const QSqlField &field, const QVariant &value);
     bool updateValue(const QSqlField &field, const QVariant &oldvalue, const QVariant &newvalue);
@@ -62,10 +64,9 @@ public:
     bool Export(const QString &dir);
 private:
     QString usingTable;
-    QSqlDatabase* db;
-    QSqlQuery* query;
-    QSqlDriver* driver;
+    QSqlDatabase* db = nullptr;
+    QSqlQuery* query = nullptr;
+    QSqlDriver* driver = nullptr;
 };
-
 
 #endif // XSDATABASE_H

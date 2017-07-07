@@ -5,10 +5,14 @@
 #include <QSqlRecord>
 #include <QVariant>
 #include <QFile>
+#include <QDebug>
 
-xsDatabase::xsDatabase(const QString &file, const QString &connection_name)
+xsDatabase::xsDatabase(const QFileInfo &file, const QString &connection_name)
 {
-    connect(file, connection_name);
+    if( !connect(file.absoluteFilePath(), connection_name) )
+        qWarning() << "Impossible to open database in " << file.absoluteFilePath();
+
+    XSDBG_DB
 }
 xsDatabase::xsDatabase()
 {
@@ -67,6 +71,12 @@ bool xsDatabase::addValue(const QList<QSqlField> &fields, const QList<QVariant> 
 
     return query->exec("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
 }
+
+bool xsDatabase::addValue()
+{
+    return query->exec("INSERT INTO " + usingTable + " (" + getField(1).name() + ") VALUES (NULL)"); //TODO: MANAGE NOT NULL FIELD!
+}
+
 bool xsDatabase::updateValue(const QSqlField &field, const QVariant &value, int id)
 {
     X_PARAMS(value.isNull() || id < 0);

@@ -7,6 +7,8 @@
 #include <QStringList>
 #include <QDebug>
 
+//#define DEBUG
+
 #define OK 1
 #define FAIL 0
 
@@ -19,6 +21,24 @@
 #endif
 #ifdef linux
     #define GETUSER getenv("USER")
+#endif
+
+#ifdef DEBUG
+#define XSDBG_DB {                      \
+qDebug() << db->connectionName();       \
+qDebug() << db->databaseName();         \
+qDebug() << db->driverName();           \
+qDebug() << db->userName();             \
+qDebug() << driver->isOpen();           \
+qDebug() << driver->lastError().text(); \
+qDebug() << query->executedQuery();     \
+qDebug() << query->isSelect();          \
+qDebug() << query->isValid();           \
+qDebug() << query->isActive();          \
+qDebug() << query->size();              \
+}
+#else
+#define XSDBG_DB
 #endif
 
 #if defined(XSLIB_LIBRARY)
