@@ -38,7 +38,8 @@ bool xsDatabase::createTable(const QString& table, const QList<QSqlField> &field
 {
     X_PARAMS(table.isEmpty() || fields.isEmpty());
 
-    return query->exec("CREATE TABLE "+ table + "(" + format(fields, true) + ")");
+    call("CREATE TABLE "+ table + "(" + format(fields, true) + ")");
+    return true;
 }
 bool xsDatabase::useTable(const QString &table)
 {
@@ -62,19 +63,22 @@ bool xsDatabase::addValue(const QList<QVariant> &values) //TODO: TAKE ID?
 {
     X_PARAMS(values.isEmpty())
 
-    return query->exec("INSERT INTO " + usingTable + " (" + format(getFields(true)) + ") VALUES (" + format(values) + ")");
+    call("INSERT INTO " + usingTable + " (" + format(getFields(true)) + ") VALUES (" + format(values) + ")");
+    return true;
 }
 
 bool xsDatabase::addValue(const QList<QSqlField> &fields, const QList<QVariant> &values)
 {
     X_PARAMS(values.isEmpty())
 
-    return query->exec("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
+    call("INSERT INTO " + usingTable + " (" + format(fields) + ") VALUES (" + format(values) + ")");
+    return true;
 }
 
 bool xsDatabase::addValue()
 {
-    return query->exec("INSERT INTO " + usingTable + " (" + getField(1).name() + ") VALUES (NULL)"); //TODO: MANAGE NOT NULL FIELD!
+    call("INSERT INTO " + usingTable + " (" + getField(1).name() + ") VALUES (NULL)");
+    return true; //TODO: MANAGE NOT NULL FIELD!
 }
 
 bool xsDatabase::updateValue(const QSqlField &field, const QVariant &value, int id)
@@ -82,14 +86,16 @@ bool xsDatabase::updateValue(const QSqlField &field, const QVariant &value, int 
     X_PARAMS(value.isNull() || id < 0);
     X_FIELD(field, value, false);
 
-    return query->exec("UPDATE " + usingTable + " SET " + field.name() + " = '" + value.toString() + "' WHERE ID = " + QString::number(id));
+    call("UPDATE " + usingTable + " SET " + field.name() + " = '" + value.toString() + "' WHERE ID = " + QString::number(id));
+    return true;
 }
 
 bool xsDatabase::removeValue(const QSqlField &field, const QVariant& value)
 {
     X_PARAMS (value.isNull());
     X_FIELD(field, value, false);
-    return query->exec("DELETE FROM " + usingTable + " WHERE " + field.name() + " = (" + value.toString() + ")");
+    call("DELETE FROM " + usingTable + " WHERE " + field.name() + " = (" + value.toString() + ")");
+    return true;
 }
 
 bool xsDatabase::updateValue(const QSqlField &field, const QVariant &oldvalue, const QVariant &newvalue)
@@ -97,7 +103,8 @@ bool xsDatabase::updateValue(const QSqlField &field, const QVariant &oldvalue, c
     X_PARAMS(oldvalue.isNull() || newvalue.isNull())
     X_FIELD(field, oldvalue, false);
     X_FIELD(field, newvalue, false);
-    return query->exec("UPDATE " + usingTable + " SET " + field.name() + " = '" + newvalue.toString() + "' WHERE " + field.name() + " = '" + oldvalue.toString() + "'");
+    call("UPDATE " + usingTable + " SET " + field.name() + " = '" + newvalue.toString() + "' WHERE " + field.name() + " = '" + oldvalue.toString() + "'");
+    return true;
 }
 
 
@@ -107,7 +114,7 @@ QList<QVariant> xsDatabase::getColumn(const QSqlField& field)
 
     X_NOT_FOUND_FIELD(field, offset);
 
-    query->exec("SELECT * FROM " + usingTable);
+    call("SELECT * FROM " + usingTable);
     while (query->next())
         offset.append(query->value(field.name()));
 
@@ -120,7 +127,7 @@ QList<QVariant> xsDatabase::getRow(int index)
     X_PARAMS(index < 0);
     QList<QVariant> out;
 
-    query->exec("SELECT * FROM " + usingTable);
+    call("SELECT * FROM " + usingTable);
     int fields = getFieldCount();
     int j = 0;
 
@@ -139,7 +146,7 @@ QVariant xsDatabase::findValue(const QSqlField& field, int id)
 
     X_NOT_FOUND_FIELD(field, QVariant(QVariant::Invalid));
 
-    query->exec("SELECT * FROM " + usingTable);
+    call("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(i == id) //TODO: Not ordered data fix!
             return query->value(field.name());
@@ -152,7 +159,7 @@ int xsDatabase::findValue(const QSqlField& field, const QVariant &value)
     X_PARAMS(value.isNull());
     X_FIELD(field, value, -1);
 
-    query->exec("SELECT * FROM " + usingTable);
+    call("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(query->value(field.name()) == value)
             return i;
@@ -169,8 +176,7 @@ bool xsDatabase::existValue(const QSqlField &field, const QVariant &value)
 
 bool xsDatabase::clearTable()
 {
-    if (!query->exec("DELETE FROM " + usingTable ))
-        return false;
+    call("DELETE FROM " + usingTable );
 
     return true;
 }
@@ -245,7 +251,7 @@ int xsDatabase::getFieldCount()
 
 int xsDatabase::getRecordCount()
 {
-    query->exec("SELECT * FROM " + usingTable);
+    call("SELECT * FROM " + usingTable);
     query->last();
     return query->at();
 }
@@ -307,6 +313,16 @@ QVariant xsDatabase::type(const QString &str)
         qWarning() << __func__ << "() Invalid type name: " << str;
 }
 
+bool xsDatabase::call(const QString &textquery)
+{
+    if(!query->exec(textquery))
+    {
+        qDebug() << "QUERY ERROR -> " << getLastQuery() << endl << "ERROR MESSAGE -> " << getMessage();
+        return false;
+    }
+    return true;
+}
+
 bool xsDatabase::Import(const QString &table, const QString &dir)
 {
     X_PARAMS(dir.isEmpty() || table.isEmpty());
@@ -316,8 +332,7 @@ bool xsDatabase::Import(const QString &table, const QString &dir)
     file.open(QFile::ReadOnly);
     QString header = file.readLine(); //first row (name field and type)
     header.replace('\n',"");
-    if(!query->exec("CREATE TABLE "+ table + "(" + header + ")"))
-        return false;
+    call("CREATE TABLE "+ table + "(" + header + ")");
 
     usingTable = table;
 
@@ -350,7 +365,7 @@ bool xsDatabase::Export(const QString &dir)
     file.open(QFile::WriteOnly);
     file.write(format(getFields(), true).toLatin1() + "\n"); //TODO: add PRIMARY KEY
 
-    query->exec("SELECT * FROM " + usingTable);
+    call("SELECT * FROM " + usingTable);
     while(query->next())
     {
         for(int column = 0; column < getFieldCount(); column++)

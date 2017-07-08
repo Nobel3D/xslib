@@ -60,6 +60,8 @@ public:
     QString type(const QVariant::Type &t);
     QVariant type(const QString &str);
 
+    bool call(const QString& textquery);
+
     bool Import(const QString &table, const QString &dir);
     bool Export(const QString &dir);
 private:
