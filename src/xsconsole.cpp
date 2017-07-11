@@ -59,13 +59,13 @@ xsConsole::xsConsole()
 
 void xsConsole::Write(QString text)
 {
-    *out << text;
+    *out << text.toUtf8();
     out->flush();
 }
 
 void xsConsole::Read(QString& text)
 {
-    text = in->readLine();
+    text = in->readLine().toUtf8();
 }
 
 #ifdef linux
