@@ -8,6 +8,8 @@
 #include <QDebug>
 
 //#define DEBUG
+#define XSLIB "0.17"
+
 
 #define OK 1
 #define FAIL 0

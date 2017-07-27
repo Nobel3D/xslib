@@ -17,6 +17,11 @@ public:
      * W: All attemps will be count and if @iHit is higher than @iMaxHit return is always #FAIL
      * @hit Password to check
      */
+    bool CheckDirect(const QString &uncrypted);
+    /* Check if @uncrypted is equivalent of #strPassword without re-encrypt
+     * W: All attemps will be count and if @iHit is higher than @iMaxHit return is always #FAIL
+     * @crypted Uncrypted string to check
+     */
     int Check(const QString &hit);
     /* Check if @hit password is equivalent of #strPassword
      * W: All attemps will be count and if @iHit is higher than @iMaxHit return is always #FAIL

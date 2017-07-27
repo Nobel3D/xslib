@@ -7,14 +7,17 @@
 #include <QSqlField>
 #include <QFileInfo>
 
+enum CommitType { Direct = 0, RAM = 1, File = 2, DirectRAM = 3, DirectFile = 4};
+
 class XSLIBSHARED_EXPORT xsDatabase
 {
 public:
-    xsDatabase(const QFileInfo& file, const QString &connection_name);
+    xsDatabase(const QFileInfo& file, const QString &connection_name, CommitType commit = Direct, const QString &commit_file = QString());
     xsDatabase();
 
     ~xsDatabase();
 
+    bool connect(const QString& file, const QString &connection_name, CommitType commit, const QString &commit_file);
     bool connect(const QString& file, const QString &connection_name);
 
     bool createTable(const QString &table, const QList<QSqlField> &fields);
@@ -55,20 +58,30 @@ public:
     QString getTable();
     QString getMessage();
     QString getLastQuery();
+    QByteArray getCommitRAM();
+    QString getCommitFile();
 
     QString type(const QVariant &var);
     QString type(const QVariant::Type &t);
     QVariant type(const QString &str);
 
     bool call(const QString& textquery);
+    static int script(const QByteArray &text, QSqlQuery *sql);
+    static int script(const QString &filepath,  QSqlQuery *sql);
+    int script(bool clear_res = true);
 
     bool Import(const QString &table, const QString &dir);
     bool Export(const QString &dir);
+
+    bool clone(const QString &path);
 private:
     QString usingTable;
     QSqlDatabase* db = nullptr;
     QSqlQuery* query = nullptr;
     QSqlDriver* driver = nullptr;
+    CommitType commitType;
+    QByteArray* commitRam = nullptr;
+    QString* commitFile = nullptr;
 };
 
 #endif // XSDATABASE_H

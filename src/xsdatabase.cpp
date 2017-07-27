@@ -7,9 +7,9 @@
 #include <QFile>
 #include <QDebug>
 
-xsDatabase::xsDatabase(const QFileInfo &file, const QString &connection_name)
+xsDatabase::xsDatabase(const QFileInfo &file, const QString &connection_name, CommitType commit, const QString &commit_file)
 {
-    if( !connect(file.absoluteFilePath(), connection_name) )
+    if( !connect(file.absoluteFilePath(), connection_name, commit, commit_file) )
         qWarning() << "Impossible to open database in " << file.absoluteFilePath();
 
     XSDBG_DB
@@ -25,8 +25,24 @@ xsDatabase::~xsDatabase()
         db->close();
 }
 
+bool xsDatabase::connect(const QString& file, const QString &connection_name, CommitType commit, const QString &commit_file)
+{
+    commitType = commit;
+    if(commit == File || commit == DirectFile)
+        commitFile = new QString(commit_file); //TODO: CHECK IF COMMIT FILE IS VALID
+    else if(commit == RAM || commit == DirectRAM)
+        commitRam = new QByteArray();
+
+    db = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE", connection_name));
+    db->setDatabaseName(file);
+    query = new QSqlQuery(*db);
+    driver = db->driver();
+    return db->open();
+}
+
 bool xsDatabase::connect(const QString& file, const QString &connection_name)
 {
+    commitType = Direct;
     db = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE", connection_name));
     db->setDatabaseName(file);
     query = new QSqlQuery(*db);
@@ -114,7 +130,7 @@ QList<QVariant> xsDatabase::getColumn(const QSqlField& field)
 
     X_NOT_FOUND_FIELD(field, offset);
 
-    call("SELECT * FROM " + usingTable);
+    query->exec("SELECT * FROM " + usingTable);
     while (query->next())
         offset.append(query->value(field.name()));
 
@@ -127,7 +143,7 @@ QList<QVariant> xsDatabase::getRow(int index)
     X_PARAMS(index < 0);
     QList<QVariant> out;
 
-    call("SELECT * FROM " + usingTable);
+    query->exec("SELECT * FROM " + usingTable);
     int fields = getFieldCount();
     int j = 0;
 
@@ -146,7 +162,7 @@ QVariant xsDatabase::findValue(const QSqlField& field, int id)
 
     X_NOT_FOUND_FIELD(field, QVariant(QVariant::Invalid));
 
-    call("SELECT * FROM " + usingTable);
+    query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(i == id) //TODO: Not ordered data fix!
             return query->value(field.name());
@@ -159,7 +175,7 @@ int xsDatabase::findValue(const QSqlField& field, const QVariant &value)
     X_PARAMS(value.isNull());
     X_FIELD(field, value, -1);
 
-    call("SELECT * FROM " + usingTable);
+    query->exec("SELECT * FROM " + usingTable);
     for (int i = 0; query->next(); i++)
         if(query->value(field.name()) == value)
             return i;
@@ -251,7 +267,7 @@ int xsDatabase::getFieldCount()
 
 int xsDatabase::getRecordCount()
 {
-    call("SELECT * FROM " + usingTable);
+    query->exec("SELECT * FROM " + usingTable);
     query->last();
     return query->at();
 }
@@ -267,6 +283,16 @@ QString xsDatabase::getMessage()
 QString xsDatabase::getLastQuery()
 {
     return query->lastQuery();
+}
+
+QByteArray xsDatabase::getCommitRAM()
+{
+    return *commitRam;
+}
+
+QString xsDatabase::getCommitFile()
+{
+    return *commitFile;
 }
 
 QString xsDatabase::type(const QVariant &var)
@@ -315,12 +341,72 @@ QVariant xsDatabase::type(const QString &str)
 
 bool xsDatabase::call(const QString &textquery)
 {
-    if(!query->exec(textquery))
+    if(commitType == RAM || commitType == DirectRAM)
     {
-        qDebug() << "QUERY ERROR -> " << getLastQuery() << endl << "ERROR MESSAGE -> " << getMessage();
-        return false;
+        commitRam->append(textquery + "\n");
+    }
+    if(commitType == File || commitType == DirectFile)
+    {
+        QFile commit(*commitFile);
+        commit.open(QFile::Append);
+        commit.write(textquery.toUtf8().append("\n"));
+        commit.close();
+    }
+    if(commitType != RAM && commitType != File)
+    {
+        if(!query->exec(textquery))
+        {
+            qDebug() << "QUERY ERROR -> " << textquery << endl << "ERROR MESSAGE -> " << getMessage();
+            return false;
+        }
     }
     return true;
+}
+
+int xsDatabase::script(const QByteArray &text, QSqlQuery *sql)
+{
+    QList<QByteArray> out = text.split('\n');
+    out.removeLast();
+    int row = 1;
+    for(int i = 0; i < out.count(); i++)
+    {
+        row++;
+        if(!sql->exec(out.at(i)))
+            return row;
+    }
+    return 0;
+}
+
+int xsDatabase::script(const QString &filepath, QSqlQuery *sql)
+{
+
+    QFile in(filepath);
+    in.open(QFile::ReadOnly);
+    for(int  i = 1; in.bytesAvailable(); i++)
+    {
+        if(!sql->exec(in.readLine()))
+            return i;
+    }
+    return 0;
+}
+
+int xsDatabase::script(bool clear_res)
+{
+    int out = 0;
+    switch(commitType)
+    {
+    case RAM:
+        if((out = script(*commitRam, query)) != 0)
+            qWarning() << "QUERY ERROR AT LINE " << out << " -> " << getLastQuery() << endl << "ERROR MESSAGE -> " << getMessage();
+        if(clear_res) commitRam->clear();
+        break;
+    case File:
+        if(out = script(*commitFile, query) != 0)
+            qWarning() << "QUERY ERROR AT LINE " << out << " -> " << getLastQuery() << endl << "ERROR MESSAGE -> " << getMessage();
+        if(clear_res) QFile(*commitFile).remove();
+        break;
+    }
+    return out;
 }
 
 bool xsDatabase::Import(const QString &table, const QString &dir)
@@ -363,15 +449,20 @@ bool xsDatabase::Export(const QString &dir)
 
     QFile file(dir);
     file.open(QFile::WriteOnly);
-    file.write(format(getFields(), true).toLatin1() + "\n"); //TODO: add PRIMARY KEY
+    file.write(format(getFields(), true).toUtf8() + "\n"); //TODO: add PRIMARY KEY
 
-    call("SELECT * FROM " + usingTable);
+    query->exec("SELECT * FROM " + usingTable);
     while(query->next())
     {
         for(int column = 0; column < getFieldCount(); column++)
-            file.write(query->value(column).toString().toLatin1() + ",");
+            file.write(query->value(column).toString().toUtf8() + ",");
         file.write("\n");
     }
     file.close();
     return true;
+}
+
+bool xsDatabase::clone(const QString &path)
+{
+    return QFile::copy(db->databaseName(), path);
 }

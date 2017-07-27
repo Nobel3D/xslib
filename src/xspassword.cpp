@@ -14,6 +14,20 @@ xsPassword::xsPassword(const QString &passwd, bool copyClear, QCryptographicHash
         setMaxHit(6);
 }
 
+bool xsPassword::CheckDirect(const QString &uncrypted)
+{
+    if(iHit > iMaxHit)
+        return false;
+
+    if(uncrypted == strPassword)
+        return true;
+    else
+    {
+        iHit++;
+        return false;
+    }
+}
+
 int xsPassword::Check(const QString &hit)
 {
     if(iHit > iMaxHit)
