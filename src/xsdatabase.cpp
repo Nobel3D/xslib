@@ -398,15 +398,32 @@ int xsDatabase::script(bool clear_res)
     case RAM:
         if((out = script(*commitRam, query)) != 0)
             qWarning() << "QUERY ERROR AT LINE " << out << " -> " << getLastQuery() << endl << "ERROR MESSAGE -> " << getMessage();
-        if(clear_res) commitRam->clear();
         break;
     case File:
         if(out = script(*commitFile, query) != 0)
             qWarning() << "QUERY ERROR AT LINE " << out << " -> " << getLastQuery() << endl << "ERROR MESSAGE -> " << getMessage();
-        if(clear_res) QFile(*commitFile).remove();
         break;
     }
+    if(clear_res)
+        scriptClear();
     return out;
+}
+
+int xsDatabase::scriptClear()
+{
+    switch (commitType) {
+    case RAM:
+    case DirectRAM:
+        commitRam->clear();
+        break;
+    case DirectFile:
+    case File:
+        QFile(*commitFile).remove();
+        break;
+    default:
+        return 0;
+    }
+    return 1;
 }
 
 bool xsDatabase::Import(const QString &table, const QString &dir)

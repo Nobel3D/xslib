@@ -70,6 +70,8 @@ public:
     static int script(const QString &filepath,  QSqlQuery *sql);
     int script(bool clear_res = true);
 
+    int scriptClear();
+
     bool Import(const QString &table, const QString &dir);
     bool Export(const QString &dir);
 
