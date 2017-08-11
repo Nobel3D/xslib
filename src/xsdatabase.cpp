@@ -50,6 +50,14 @@ bool xsDatabase::connect(const QString& file, const QString &connection_name)
     return db->open();
 }
 
+bool xsDatabase::deleteTable(const QString &table)
+{
+    X_PARAMS(!existTable(table));
+
+    call("DROP TABLE " + table);
+    return true;
+}
+
 bool xsDatabase::createTable(const QString& table, const QList<QSqlField> &fields)
 {
     X_PARAMS(table.isEmpty() || fields.isEmpty());

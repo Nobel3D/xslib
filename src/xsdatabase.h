@@ -20,6 +20,7 @@ public:
     bool connect(const QString& file, const QString &connection_name, CommitType commit, const QString &commit_file);
     bool connect(const QString& file, const QString &connection_name);
 
+    bool deleteTable(const QString &table);
     bool createTable(const QString &table, const QList<QSqlField> &fields);
     bool useTable(const QString &table);
 
