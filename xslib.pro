@@ -25,33 +25,35 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES +=\
-    src/xsconsole.cpp \
-    src/xslog.cpp \
-    src/xsarg.cpp \
-    src/xsblowfish.cpp \
-    src/xsdatabase.cpp \
-    src/xsserverssl.cpp \
-    src/xsclientssl.cpp \
-    src/xspassword.cpp \
-    src/xsobject.cpp \
-    src/xsclient.cpp \
-    src/xsserver.cpp
+    xsconsole.cpp \
+    xslog.cpp \
+    xsarg.cpp \
+    xsblowfish.cpp \
+    xsdatabase.cpp \
+    xsserverssl.cpp \
+    xsclientssl.cpp \
+    xspassword.cpp \
+    xsobject.cpp \
+    xsclient.cpp \
+    xsserver.cpp \
+    xsui.cpp
 
 HEADERS +=\
-    src/xslib_global.h \
-    src/xsconsole.h \
-    src/xslog.h \
-    src/xslib.h \
-    src/xsarg.h \
-    src/xsblowfish.h \
-    src/hexpi.h \
-    src/xsdatabase.h \
-    src/xsserverssl.h \
-    src/xsclientssl.h \
-    src/xspassword.h \
-    src/xsobject.h \
-    src/xsclient.h \
-    src/xsserver.h
+    xslib_global.h \
+    xsconsole.h \
+    xslog.h \
+    xslib.h \
+    xsarg.h \
+    xsblowfish.h \
+    hexpi.h \
+    xsdatabase.h \
+    xsserverssl.h \
+    xsclientssl.h \
+    xspassword.h \
+    xsobject.h \
+    xsclient.h \
+    xsserver.h \
+    xsui.h
 
 unix {
     target.path = /usr/lib

@@ -13,5 +13,6 @@
 #include "xsobject.h"
 #include "xsserver.h"
 #include "xsclient.h"
+#include "xsui.h"
 
 #endif // XSLIB_H
