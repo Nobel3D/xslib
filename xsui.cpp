@@ -7,8 +7,9 @@ xsUi::xsUi()
 
 QIcon xsUi::getFromIcons(const QString &icon)
 {
-    if(QIcon::hasThemeIcon(icon))
-        return QIcon::fromTheme(icon);
+    QString in = QFileInfo(icon).baseName();
+    if(QIcon::hasThemeIcon(in))
+        return QIcon::fromTheme(in);
     else
         return QIcon(icon);
 }

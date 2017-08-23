@@ -275,9 +275,9 @@ int xsDatabase::getFieldCount()
 
 int xsDatabase::getRecordCount()
 {
-    query->exec("SELECT * FROM " + usingTable);
-    query->last();
-    return query->at();
+    query->exec("SELECT COUNT(*) FROM " + usingTable);
+    query->first();
+    return query->value(0).toInt();
 }
 
 QString xsDatabase::getTable()

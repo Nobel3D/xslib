@@ -3,6 +3,7 @@
 
 #include "xslib_global.h"
 #include <QIcon>
+#include <QFileInfo>
 
 class XSLIBSHARED_EXPORT xsUi
 {
