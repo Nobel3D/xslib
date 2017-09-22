@@ -1,9 +1,0 @@
-#!/bin/bash
-
-LIBPATH="/usr/include/xslib/"
-
-qmake xslib.pro -spec linux-g++
-make
-cp libxs* /usr/lib/
-mkdir $LIBPATH
-cp -r $PWD/src/* $LIBPATH

@@ -2,8 +2,8 @@
 #define XSCONSOLE_H
 
 #include <QTextStream>
-#include "xspassword.h"
-#include "xslib_global.h"
+#include <utils/xspassword.h>
+#include <xslib_global.h>
 
 #define endl "\n"
 

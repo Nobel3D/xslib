@@ -16,6 +16,8 @@ public:
     xsDatabase();
 
     ~xsDatabase();
+    
+    QString name();
 
     bool connect(const QString& file, const QString &connection_name, CommitType commit, const QString &commit_file);
     bool connect(const QString& file, const QString &connection_name);

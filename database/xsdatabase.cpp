@@ -25,6 +25,12 @@ xsDatabase::~xsDatabase()
         db->close();
 }
 
+
+QString xsDatabase::name()
+{
+    return db->databaseName();
+}
+
 bool xsDatabase::connect(const QString& file, const QString &connection_name, CommitType commit, const QString &commit_file)
 {
     commitType = commit;
